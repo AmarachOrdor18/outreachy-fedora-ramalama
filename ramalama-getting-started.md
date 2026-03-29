@@ -207,12 +207,6 @@ Without it, even a confident-sounding answer cannot be trusted.
 ramalama list
 ```
 
-```
-NAME                                          MODIFIED        SIZE
-hf://bartowski/SmolLM2-135M-Instruct-GGUF    3 minutes ago   100.57 MB
-hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF  40 minutes ago  460.74 MB
-```
-
 ![ramalama-list](screenshots/11-ramalama-list.png)
 
 Both models sit in local storage and can be reused without
@@ -222,22 +216,10 @@ re-downloading, similar to how Podman handles container images.
 ramalama inspect tinyllama
 ```
 
-```
-TinyLlama-1.1B-Chat-v1.0-GGUF
-   Registry: huggingface
-   Format: GGUF
-   Version: 3
-   Tensors: 201 entries
-```
-
 ![ramalama-inspect](screenshots/12-ramalama-inspect.png)
 
 ```bash
 ramalama containers
-```
-
-```
-CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
 ```
 
 ![ramalama-containers](screenshots/13-ramalama-containers.png)
