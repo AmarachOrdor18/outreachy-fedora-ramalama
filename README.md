@@ -221,23 +221,25 @@ re-downloading, similar to how Podman handles container images.
 ramalama inspect ollama://tinyllama
 ```
 
-```
-TinyLlama-1.1B-Chat-v1.0-GGUF
-   Registry: huggingface
-   Format: GGUF
-   Version: 3
-   Tensors: 201 entries
+
+![ramalama-inspect-tinyllama](screenshots/12-ramalama-inspect-tinyllama.png)
+
+```bash
+ramalama inspect huggingface://bartowski/SmolLM2-135M-Instruct-GGUF
 ```
 
-![ramalama-inspect](screenshots/12-ramalama-inspect.png)
+![ramalama-inspect-smollm2](screenshots/13-ramalama-inspect-smollm2.png)
+
+Both models use GGUF format and Version 3, but SmolLM2 has more
+metadata entries (37 vs 23) and more tensors (272 vs 201) despite
+being a much smaller model in file size. This is because SmolLM2
+uses a more modern architecture with a higher number of smaller
+weight layers, while TinyLlama uses fewer but larger ones.
 
 ```bash
 ramalama containers
 ```
-
-```
-CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
-```
+![ramalama-containers](screenshots/14-ramalama-containers.png)
 
 Empty the container was automatically cleaned up after the run
 finished. Nothing left running in the background.
@@ -258,7 +260,6 @@ RamaLama cuts it down to:
 ramalama pull <model>
 ramalama run <model> "your prompt"
 ```
-
 
 My setup was not completely smooth though. The install script had
 a PATH issue on WSL2, Podman needed some fixing before it would
