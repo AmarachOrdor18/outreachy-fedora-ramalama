@@ -8,7 +8,7 @@ take on whether RamaLama lives up to its reputation for making AI
 work boringly simple.
 
 Each section includes the exact commands used, the full output, and
-the reasoning behind each choice made along the way
+the reasoning behind each choice made along the way.
 
 ## System Environment
 
@@ -33,7 +33,7 @@ curl -fsSL https://ramalama.ai/install.sh | bash
 ```
 
 It printed "everything's installed!" but then threw `uv: command not
-found`. The install itself worked but the PATH just wasn't updated yet.
+found`. The install itself worked the PATH just wasn't updated yet.
 I tried `source $HOME/.local/bin/env` and updating `.bashrc` but
 `ramalama version` still came back as not found. This seems to be a
 WSL2 quirk where PATH changes don't always apply cleanly.
@@ -75,7 +75,7 @@ ramalama info
 
 Key things RamaLama detected automatically:
 
-- No GPU detected, selected CPU runtime
+- No GPU selected CPU runtime
 - Container engine: Podman 4.9.3
 - Runtime image: quay.io/ramalama/ramalama:0.18
 - Default runtime: llama.cpp
@@ -85,25 +85,28 @@ Key things RamaLama detected automatically:
 No configuration was needed on my end. RamaLama inspected the system
 and made the right choices itself.
 
-## Step 3: Pulling Model 1 - TinyLlama via Shortname
+## Step 3: Pulling Model 1 - TinyLlama via Ollama Transport
 
 ```bash
-ramalama pull tinyllama
+ramalama pull ollama://tinyllama
 ```
 
-RamaLama resolved the shortname automatically to
-`hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF` and downloaded it
-from HuggingFace.
+I used the explicit `ollama://` prefix to pull TinyLlama directly
+from the Ollama registry. RamaLama resolved this to
+`ollama://library/tinyllama:latest` and downloaded the model file.
 
 
 ![tinyllama-pull-start](screenshots/05-tinyllama-pull-start.png)
 ![tinyllama-pull-complete](screenshots/06-tinyllama-pull-complete.png)
 
-**Transport:** HuggingFace (via built-in shortname)
-**Size:** 460.74 MB, small enough for CPU-only use
+**Transport:** Ollama (explicit ollama:// prefix)
+**Size:** 608.16 MB
+**Speed:** 1.45 MB/s
 
 I picked TinyLlama because it is well known, lightweight, and a
-safe starting point for a CPU-only machine.
+safe starting point for a CPU-only machine. The Ollama registry is
+also RamaLama's default transport, making it the natural first
+choice to explore.
 
 ## Step 4: Running Model 1
 
@@ -112,33 +115,35 @@ On first run, RamaLama silently pulled the inference runtime container
 took a few minutes but only happens once.
 
 ```bash
-ramalama run tinyllama "What are the Four Foundations of the Fedora project?"
+ramalama run ollama://tinyllama "What are the Four Foundations of the Fedora project?"
 ```
 
 **Output:**
 ```
-The Four Foundation is the name given by the Fedora project to the
-four components that make up the project:
+The Four Foundation of the Fedora project are:
 
-1. Fedora: The project's official name and short form of the Fedora
-   operating system.
-2. Fedora Core: A collection of software modules that provide a
-   minimal set of tools and services for users.
-3. Fedora Community: The Fedora community is a community of
-   developers, volunteers, and users who work together to improve
-   the Fedora operating system.
-4. Fedora Education: A project that aims to bring the Fedora
-   operating system to schools and other institutions.
+1. The Fedora community
+2. The Fedora Core team
+3. The Fedora Packaging team
+4. The Fedora documentation team
+
+Fedora is a community-driven project, so the community is the
+foundation for the Fedora project. The Fedora Core team is
+responsible for maintaining and developing the Fedora distribution,
+while the Fedora Packaging team ensures the quality of the Fedora
+packages. The Fedora documentation team is responsible for creating
+and maintaining the Fedora documentation.
 ```
 
 ![tinyllama-run](screenshots/07-tinyllama-run.png)
 
 The correct answer is **Freedom, Friends, Features, and First**.
-TinyLlama got none of them right. It invented four plausible-sounding
-but completely wrong components. The response was structured and
-confident, which made the hallucination harder to spot at first.
+TinyLlama got none of them right. It invented four team-based
+components that sound like real Fedora groups but are not the actual
+Four Foundations. The response was well structured and confident,
+which made the hallucination easy to miss at first glance.
 
-## Step 5: Pulling Model 2 - SmolLM2 via Explicit Transport
+## Step 5: Pulling Model 2 SmolLM2 via Explicit Transport
 
 This time I used the full `huggingface://` prefix to make the
 transport choice explicit:
@@ -152,7 +157,7 @@ ramalama pull huggingface://bartowski/SmolLM2-135M-Instruct-GGUF
 
 **Transport:** HuggingFace (explicit prefix)
 **Size:** 100.57 MB
-**Speed:** 1.58 MB/s, noticeably faster than TinyLlama's pull
+**Speed:** 1.58 MB/s noticeably faster than TinyLlama's pull
 
 SmolLM2 at 135M parameters is less than a quarter the size of
 TinyLlama. I wanted to see if the smaller size affected answer
@@ -184,11 +189,11 @@ The Four Foundations of the Fedora project are:
 
 | | TinyLlama | SmolLM2-135M |
 |---|---|---|
-| Transport | HuggingFace shortname | HuggingFace explicit prefix |
-| Size | 460.74 MB | 100.57 MB |
-| Download speed | 511 KB/s | 1.58 MB/s |
+| Transport | Ollama | HuggingFace |
+| Size | 608.16 MB | 100.57 MB |
+| Download speed | 1.45 MB/s | 1.58 MB/s |
 | Accuracy | Wrong | Wrong |
-| Hallucination style | Invented realistic names | Numbered placeholders |
+| Hallucination style | Invented team names | Numbered placeholders |
 | Response quality | Sounded plausible | Obviously made up |
 
 Both models failed. TinyLlama at least produced names that sounded
@@ -198,7 +203,7 @@ Friends, Features, First.
 
 This is actually the most useful finding from the whole exercise.
 These models do not have reliable knowledge of Fedora-specific facts.
-They need external context, which is exactly what RAG provides.
+They need external context which is exactly what RAG provides.
 Without it, even a confident-sounding answer cannot be trusted.
 
 ## Step 7: Additional Commands
@@ -207,47 +212,43 @@ Without it, even a confident-sounding answer cannot be trusted.
 ramalama list
 ```
 
-```
-NAME                                          MODIFIED        SIZE
-hf://bartowski/SmolLM2-135M-Instruct-GGUF    3 minutes ago   100.57 MB
-hf://TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF  40 minutes ago  460.74 MB
-```
-
 ![ramalama-list](screenshots/11-ramalama-list.png)
 
 Both models sit in local storage and can be reused without
 re-downloading, similar to how Podman handles container images.
 
 ```bash
-ramalama inspect tinyllama
+ramalama inspect ollama://tinyllama
 ```
 
-```
-TinyLlama-1.1B-Chat-v1.0-GGUF
-   Registry: huggingface
-   Format: GGUF
-   Version: 3
-   Tensors: 201 entries
+
+![ramalama-inspect-tinyllama](screenshots/12-ramalama-inspect-tinyllama.png)
+
+```bash
+ramalama inspect huggingface://bartowski/SmolLM2-135M-Instruct-GGUF
 ```
 
-![ramalama-inspect](screenshots/12-ramalama-inspect.png)
+
+![ramalama-inspect-smollm2](screenshots/13-ramalama-inspect-smollm2.png)
+
+Both models use GGUF format and Version 3, but SmolLM2 has more
+metadata entries (37 vs 23) and more tensors (272 vs 201) despite
+being a much smaller model in file size. This is because SmolLM2
+uses a more modern architecture with a higher number of smaller
+weight layers, while TinyLlama uses fewer but larger ones.
 
 ```bash
 ramalama containers
 ```
 
-```
-CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
-```
+![ramalama-containers](screenshots/14-ramalama-containers.png)
 
-![ramalama-containers](screenshots/13-ramalama-containers.png)
-
-Empty. The container was automatically cleaned up after the run
+Empty the container was automatically cleaned up after the run
 finished. Nothing left running in the background.
 
 ## Does RamaLama Make AI Boring?
 
-Honestly, yes, and I mean that positively.
+Honestly, yes and I mean that positively.
 
 Before tools like this, running a local model meant picking a
 backend, installing the right GPU libraries, getting the model in
@@ -269,15 +270,12 @@ install, and the first model run sat silently for several minutes
 while the runtime container downloaded with no progress shown.
 These are real rough edges worth knowing about.
 
-But once past all that, the workflow was consistent every time.
-
 ## Conclusion
 
-The setup took some troubleshooting but the actual workflow of pull,
-run, get a response, was simple and repeatable. Both models
+The setup took some troubleshooting but the actual workflow pull,
+run, get a response was simple and repeatable. Both models
 hallucinated on the Fedora question, which is not a surprise for
-small models without any domain context. It is also exactly the
-problem the RAG project is trying to solve.
+small models without any domain context.
 
 ## References
 
@@ -285,3 +283,4 @@ problem the RAG project is trying to solve.
 - [RamaLama Documentation](https://ramalama.ai)
 - [Fedora Four Foundations](https://docs.fedoraproject.org/en-US/project/)
 - [HuggingFace](https://huggingface.co)
+- [Podman](https://podman.io)
